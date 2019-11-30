@@ -1,18 +1,18 @@
-import React from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 
 
-type SeparateType = 'hour' | 'half' | 'quote';
-
 interface TimeLineProps {
-  separate?: SeparateType;
+  separate?: 'half' | 'quote';
   //ampm?: boolean;
+  colors?: string[];
 }
-
 
 const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element => {
 
-  const { separate } = props;
+  const [currentColor, setCurrentColor] = useState<string>("");
+
+  const { separate, colors } = props;
 
   const TimeLineList = styled.ul`
     list-style-type: none;
@@ -26,20 +26,30 @@ const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element =>
     text-align: left;
   `;
 
+  const RenderColorSelect = (): JSX.Element => {
+    const defaultColors = ['#96E8BF','#EB7AB0','#FFFB92','#67DAEE'];
+    const colorArray = (colors && colors.length > 0)? colors : defaultColors;
+    return (
+      <select onChange={(e)=>setCurrentColor(e.target.value)}>
+        <option>Select Task Color</option>
+          {colorArray.map((color: string)=>{
+            return<option key={color} value={color}>{color}</option>;
+          })}
+      </select>
+    );
+  }
+
   const RenderTimeLine = (): any => {
     const items: JSX.Element[] = [];
-    const separeteTime: SeparateType = separate ? separate : 'hour';
     for(let i=0; i < 24; i++){
-      items.push(<TimeLineItem key={`${i}-00`}>{`${i}:00`}</TimeLineItem>);
-      switch(separeteTime){
-          case 'half':
-            items.push(<TimeLineItem key={`${i}-30`}>{`${i}:30`}</TimeLineItem>);
-          break;
-          case 'quote':
-            items.push(<TimeLineItem key={`${i}-15`}>{`${i}:15`}</TimeLineItem>);
-            items.push(<TimeLineItem key={`${i}-30`}>{`${i}:30`}</TimeLineItem>);
-            items.push(<TimeLineItem key={`${i}-45`}>{`${i}:45`}</TimeLineItem>);
-          break;
+      items.push(<TimeLineItem key={`${i}-00`} data-info={`${i}-00`}>{`${i}:00`}</TimeLineItem>);
+      if(separate === 'half'){
+        items.push(<TimeLineItem key={`${i}-30`} data-info={`${i}-30`}>{`${i}:30`}</TimeLineItem>);
+      }
+      if(separate === 'quote'){
+        items.push(<TimeLineItem key={`${i}-15`} data-info={`${i}-15`}>{`${i}:15`}</TimeLineItem>);
+        items.push(<TimeLineItem key={`${i}-30`} data-info={`${i}-30`}>{`${i}:30`}</TimeLineItem>);
+        items.push(<TimeLineItem key={`${i}-45`} data-info={`${i}-45`}>{`${i}:45`}</TimeLineItem>);
       }
     }
     return items.map((item) => {
@@ -48,9 +58,12 @@ const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element =>
   }
 
   return (
-    <TimeLineList>
-      <RenderTimeLine />
-    </TimeLineList>
+    <>
+      <RenderColorSelect />
+      <TimeLineList>
+        <RenderTimeLine />
+      </TimeLineList>
+    </>
   );
 }
 
