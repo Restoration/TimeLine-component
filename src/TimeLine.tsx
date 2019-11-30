@@ -9,10 +9,35 @@ interface TimeLineProps {
 }
 
 const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element => {
-
   const [currentColor, setCurrentColor] = useState<string>("");
+  const [isModal, setIsModal] = useState<boolean>(false);
 
   const { separate, colors } = props;
+
+  const OverLay = styled.div`
+    display: block;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 100;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0, 0.6);
+  `;
+
+  const ModalWindowElement = styled.div`
+  position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    -webkit-transform: translateY(-50%) translateX(-50%);
+    z-index: 1000;
+    padding: 120px;
+    width: 50%;
+    height: 50%;
+    background: #ffffff;
+  `;
+
 
   const TimeLineList = styled.ul`
     list-style-type: none;
@@ -25,6 +50,16 @@ const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element =>
     border-bottom: solid 1px #dddddd;
     text-align: left;
   `;
+
+  const ModalWindow = (): JSX.Element => {
+    return (
+      <ModalWindowElement>
+        <RenderColorSelect />
+      </ModalWindowElement>
+    );
+  }
+
+
 
   const RenderColorSelect = (): JSX.Element => {
     const defaultColors = ['#96E8BF','#EB7AB0','#FFFB92','#67DAEE'];
@@ -59,8 +94,13 @@ const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element =>
 
   return (
     <>
-      <RenderColorSelect />
-      <TimeLineList>
+    {isModal &&
+      <>
+        <OverLay onClick={()=>{setIsModal(false)}} />
+        <ModalWindow />
+      </>
+    }
+    <TimeLineList onClick={()=>{setIsModal(true)}}>
         <RenderTimeLine />
       </TimeLineList>
     </>
