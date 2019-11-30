@@ -1,18 +1,110 @@
-import React, { useState } from 'react';
+import React, { useState, useReducer, createContext, useContext } from 'react';
 import styled from 'styled-components';
 
+type StateType = {
+  isModal: boolean;
+  fromTime: string;
+  endTime: string;
+  separate: 'half' | 'quote' | 'hour';
+  colors: string[];
+}
 
-interface TimeLineProps {
-  separate?: 'half' | 'quote';
-  //ampm?: boolean;
+
+type ActionType = {
+    type : 'OPEN'| 'CLOSE' | 'DRAG'|'DROP'
+}
+
+const reducer = (state: StateType, action: ActionType) => {
+  switch (action.type) {
+    case "OPEN":
+        return { isModal: true };
+    case "CLOSE":
+        return { isModal: false };
+    case "DRAG":
+        return { isModal: true };
+    case "DROP":
+        return { isModal: false };
+  }
+}
+
+interface StoreContextProps {
+  state: StateType,
+  dispatch: ({type}: ActionType) => void;
+}
+
+const StoreContext = createContext({} as StoreContextProps);
+
+interface StoreProviderProps {
+  children: JSX.Element | JSX.Element[];
+  separate?: 'half' | 'quote' | 'hour';
   colors?: string[];
 }
 
-const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element => {
-  const [currentColor, setCurrentColor] = useState<string>("");
-  const [isModal, setIsModal] = useState<boolean>(false);
+const StoreProvider: React.FC<StoreProviderProps> = (props: StoreProviderProps): JSX.Element => {
+  const {children, colors, separate} = props;
+  const initialState: StateType = {
+    isModal: false,
+    fromTime: '',
+    endTime: '',
+    separate: separate ? separate : 'hour',
+    colors: (colors && colors.length > 0)? colors : ['#96E8BF','#EB7AB0','#FFFB92','#67DAEE'],
+  }
 
-  const { separate, colors } = props;
+  const [state, dispatch] = useReducer(reducer, initialState);
+  return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>
+}
+
+const useCountContext = () => useContext(StoreContext);
+
+
+
+const RenderTimeLine: React.FC = (): JSX.Element => {
+  const { state, dispatch } = useCountContext();
+
+  const TimeLineList = styled.ul`
+    list-style-type: none;
+  `;
+
+  const TimeLineItem = styled.li`
+    &:first-child {
+      border-top: solid 1px #dddddd;
+    }
+    min-height: 50px;
+    border-bottom: solid 1px #dddddd;
+    text-align: left;
+  `;
+
+  const RenderTimeLine = (): any => {
+    const items: JSX.Element[] = [];
+    for(let i=0; i < 24; i++){
+      items.push(<TimeLineItem key={`${i}-00`} data-info={`${i}-00`}>{`${i}:00`}</TimeLineItem>);
+      if(state.separate === 'half'){
+        items.push(<TimeLineItem key={`${i}-30`} data-info={`${i}-30`}>{`${i}:30`}</TimeLineItem>);
+      }
+      if(state.separate === 'quote'){
+        items.push(<TimeLineItem key={`${i}-15`} data-info={`${i}-15`}>{`${i}:15`}</TimeLineItem>);
+        items.push(<TimeLineItem key={`${i}-30`} data-info={`${i}-30`}>{`${i}:30`}</TimeLineItem>);
+        items.push(<TimeLineItem key={`${i}-45`} data-info={`${i}-45`}>{`${i}:45`}</TimeLineItem>);
+      }
+    }
+    return items.map((item) => {
+      return item;
+    })
+  }
+
+  return (
+    <TimeLineList onClick={(e)=>{
+      e.preventDefault();
+      dispatch({ type: 'OPEN' });
+    }}>
+        <RenderTimeLine />
+    </TimeLineList>
+  );
+}
+
+
+const RenderModalWindow: React.FC = (): JSX.Element => {
+  const { state, dispatch } = useCountContext();
 
   const OverLay = styled.div`
     display: block;
@@ -38,18 +130,16 @@ const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element =>
     background: #ffffff;
   `;
 
-
-  const TimeLineList = styled.ul`
-    list-style-type: none;
-  `;
-  const TimeLineItem = styled.li`
-    &:first-child {
-      border-top: solid 1px #dddddd;
-    }
-    min-height: 50px;
-    border-bottom: solid 1px #dddddd;
-    text-align: left;
-  `;
+  const RenderColorSelect = (): JSX.Element => {
+    return (
+      <select>
+        <option>Select Task Color</option>
+          {state.colors.map((color: string)=>{
+            return<option key={color} value={color}>{color}</option>;
+          })}
+      </select>
+    );
+  }
 
   const ModalWindow = (): JSX.Element => {
     return (
@@ -60,50 +150,34 @@ const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element =>
   }
 
 
-
-  const RenderColorSelect = (): JSX.Element => {
-    const defaultColors = ['#96E8BF','#EB7AB0','#FFFB92','#67DAEE'];
-    const colorArray = (colors && colors.length > 0)? colors : defaultColors;
-    return (
-      <select onChange={(e)=>setCurrentColor(e.target.value)}>
-        <option>Select Task Color</option>
-          {colorArray.map((color: string)=>{
-            return<option key={color} value={color}>{color}</option>;
-          })}
-      </select>
-    );
-  }
-
-  const RenderTimeLine = (): any => {
-    const items: JSX.Element[] = [];
-    for(let i=0; i < 24; i++){
-      items.push(<TimeLineItem key={`${i}-00`} data-info={`${i}-00`}>{`${i}:00`}</TimeLineItem>);
-      if(separate === 'half'){
-        items.push(<TimeLineItem key={`${i}-30`} data-info={`${i}-30`}>{`${i}:30`}</TimeLineItem>);
-      }
-      if(separate === 'quote'){
-        items.push(<TimeLineItem key={`${i}-15`} data-info={`${i}-15`}>{`${i}:15`}</TimeLineItem>);
-        items.push(<TimeLineItem key={`${i}-30`} data-info={`${i}-30`}>{`${i}:30`}</TimeLineItem>);
-        items.push(<TimeLineItem key={`${i}-45`} data-info={`${i}-45`}>{`${i}:45`}</TimeLineItem>);
-      }
-    }
-    return items.map((item) => {
-      return item;
-    })
-  }
-
   return (
     <>
-    {isModal &&
-      <>
-        <OverLay onClick={()=>{setIsModal(false)}} />
-        <ModalWindow />
-      </>
-    }
-    <TimeLineList onClick={()=>{setIsModal(true)}}>
-        <RenderTimeLine />
-      </TimeLineList>
+      {state.isModal &&
+        <>
+        <OverLay onClick={(e)=>{
+          e.preventDefault();
+          dispatch({ type: 'CLOSE' });
+          }}
+        />
+          <ModalWindow />
+        </>
+      }
     </>
+  )
+}
+
+interface TimeLineProps extends StoreProviderProps{
+}
+
+const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element => {
+  return(
+    <StoreProvider
+      colors={props.colors}
+      separate={props.separate}
+    >
+      <RenderModalWindow />
+      <RenderTimeLine />
+    </StoreProvider>
   );
 }
 
