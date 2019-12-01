@@ -17,13 +17,13 @@ type ActionType = {
 const reducer = (state: StateType, action: ActionType) => {
   switch (action.type) {
     case "OPEN":
-        return { isModal: true };
+        return { ...state, isModal: true };
     case "CLOSE":
-        return { isModal: false };
+        return { ...state, isModal: false };
     case "DRAG":
-        return { isModal: true };
+        return { ...state, isModal: true };
     case "DROP":
-        return { isModal: false };
+        return { ...state, isModal: false };
   }
 }
 
@@ -34,10 +34,8 @@ interface StoreContextProps {
 
 const StoreContext = createContext({} as StoreContextProps);
 
-interface StoreProviderProps {
+interface StoreProviderProps extends TimeLineProps{
   children: JSX.Element | JSX.Element[];
-  separate?: 'half' | 'quote' | 'hour';
-  colors?: string[];
 }
 
 const StoreProvider: React.FC<StoreProviderProps> = (props: StoreProviderProps): JSX.Element => {
@@ -166,7 +164,9 @@ const RenderModalWindow: React.FC = (): JSX.Element => {
   )
 }
 
-interface TimeLineProps extends StoreProviderProps{
+interface TimeLineProps {
+  separate?: 'half' | 'quote' | 'hour';
+  colors?: string[];
 }
 
 const TimeLine: React.FC<TimeLineProps> = (props: TimeLineProps): JSX.Element => {
