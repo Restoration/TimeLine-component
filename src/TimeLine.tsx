@@ -106,7 +106,7 @@ const RenderModalWindow: React.FC = (): JSX.Element => {
 
   const OverLay = styled.div`
     display: block;
-    position: absolute;
+    position: fixed;
     top: 0px;
     left: 0px;
     z-index: 100;
@@ -116,7 +116,7 @@ const RenderModalWindow: React.FC = (): JSX.Element => {
   `;
 
   const ModalWindowElement = styled.div`
-  position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
     transform: translateY(-50%) translateX(-50%);
